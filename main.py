@@ -1,10 +1,12 @@
 import flet as ft
-from whisper_app import WhisperApp
+from whisper_ui.whisper_app import WhisperApp
 
 
 def main(page: ft.Page):
     page.title="Whisper UI Demo"
-    WhisperApp(page)
+    app = WhisperApp(page)
+    page.add(app)
+    
     
 ft.app(target=main)
 
