@@ -68,7 +68,7 @@ class WhisperControl(ft.UserControl):
             expand=True,
             min_lines=40,
             hint_text="Recognition result",
-            # read_only=True,
+            read_only=True,
         )
 
     def _build_file_button(self):

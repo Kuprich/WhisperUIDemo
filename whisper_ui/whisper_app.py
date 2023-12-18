@@ -1,5 +1,6 @@
 import flet as ft
 from whisper_ui.whisper_control import WhisperControl
+from whisper_ui.whisper_output_control import WhisperOutputControl
 
 
 class WhisperApp(ft.UserControl):
@@ -14,6 +15,7 @@ class WhisperApp(ft.UserControl):
         self._configure_window()
 
         self.whisper_control = WhisperControl(self.page)
+        self.whisper_output_control = WhisperOutputControl()
         self.tabs_control = self._build_tabs_control()
 
         page.add(self.tabs_control)
@@ -36,7 +38,7 @@ class WhisperApp(ft.UserControl):
                 ),
                 ft.Tab(
                     text="Output",
-                    content=ft.Text("This is Tab 2"),
+                    content=self.whisper_output_control
                 ),
             ],
             expand=True,
