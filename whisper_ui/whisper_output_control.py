@@ -4,6 +4,8 @@ import flet as ft
 class WhisperOutputControl(ft.UserControl):
     def __init__(self):
         super().__init__()
+        
+        self._result = ""
 
         self.output_text_filed = ft.TextField(
             min_lines=100,
@@ -11,7 +13,19 @@ class WhisperOutputControl(ft.UserControl):
             expand=True,
             multiline=True,
             read_only=True,
+            text_size=13,
         )
+    
+    @property
+    def result(self):
+        """Output data for whisper transcribe method."""
+        return self._result
+    
+    @result.setter
+    def result(self, value:str):
+        self._result = value
+        self.output_text_filed.value = value
+        self.update()
 
     def build(self):
         return ft.Container(
