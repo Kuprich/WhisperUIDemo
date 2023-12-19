@@ -7,6 +7,5 @@ def main(page: ft.Page):
     app = WhisperApp(page)
     page.add(app)
     
-    
 ft.app(target=main)
 

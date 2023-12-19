@@ -57,5 +57,5 @@ class WhisperApp(ft.UserControl):
         else:
             self.whisper_control.result += partial_result
 
-    def output_data_received(self, partial_output_data: str):
-        self.whisper_output_control.result += partial_output_data + "\n"
+    def output_data_received(self, partial_output_data):
+            self.whisper_output_control.result += partial_output_data + "\n"

@@ -41,8 +41,8 @@ def transcribe(
     word_timestamps: bool = False,
     prepend_punctuations: str = "\"'“¿([{-",
     append_punctuations: str = "\"'.。,，!！?？:：”)]}、",
-    partial_result_received,
-    output_data_received,
+    partial_result_receive,
+    output_data_receive,
     **decode_options,
 ):
     """
@@ -105,10 +105,14 @@ def transcribe(
     dtype = torch.float16 if decode_options.get("fp16", True) else torch.float32
     if model.device == torch.device("cpu"):
         if torch.cuda.is_available():
-            warnings.warn("Performing inference on CPU when CUDA is available")
+            output_data = "Performing inference on CPU when CUDA is available"
+            warnings.warn(output_data)
+            output_data_receive(output_data)
         if dtype == torch.float16:
-            warnings.warn("FP16 is not supported on CPU; using FP32 instead")
+            output_data ="FP16 is not supported on CPU; using FP32 instead"
+            warnings.warn(output_data)
             dtype = torch.float32
+            output_data_receive(output_data)
 
     if dtype == torch.float32:
         decode_options["fp16"] = False
@@ -124,7 +128,7 @@ def transcribe(
             if verbose:
                 output_data = "Detecting language using up to the first 30 seconds. Use `--language` to specify the language"
                 print(output_data)
-                output_data_received(output_data)
+                output_data_receive(output_data)
                 
             mel_segment = pad_or_trim(mel, N_FRAMES).to(model.device).to(dtype)
             _, probs = model.detect_language(mel_segment)
@@ -132,7 +136,7 @@ def transcribe(
             if verbose is not None:
                 output_data = f"Detected language: {LANGUAGES[decode_options['language']].title()}"
                 print(output_data)
-                output_data_received(output_data)
+                output_data_receive(output_data)
 
     language: str = decode_options["language"]
     task: str = decode_options.get("task", "transcribe")
@@ -344,8 +348,8 @@ def transcribe(
                     line = f"[{format_timestamp(start)} --> {format_timestamp(end)}] {text}"
                     output_data = make_safe(line)
                     print(output_data)
-                    output_data_received(output_data)
-                    partial_result_received(text)
+                    output_data_receive(output_data)
+                    partial_result_receive(text)
 
             # if a segment is instantaneous or does not contain text, clear it
             for i, segment in enumerate(current_segments):
@@ -372,6 +376,8 @@ def transcribe(
 
             # update progress bar
             pbar.update(min(content_frames, seek) - previous_seek)
+    
+    output_data_receive("Recognition process finished")
 
     return dict(
         text=tokenizer.decode(all_tokens[len(initial_prompt_tokens) :]),
