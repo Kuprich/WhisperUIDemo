@@ -21,8 +21,9 @@ class WhisperControl(ft.UserControl):
         self.result_text_field = self._build_result_text_field()
         self.copy_button = self._build_copy_button()
         self.page.snack_bar = self._build_snack_bar()
-        
+
         self.bottom_sheet = self._build_bottom_sheet()
+        self.page.overlay.append(self.bottom_sheet)
 
         self._configure_file_picker()
 
@@ -45,14 +46,13 @@ class WhisperControl(ft.UserControl):
 
     @result.setter
     def result(self, value: str):
-        if value:
-            self._result = value
-            self.result_text_field.value = value
-            if self._result:
-                self.copy_button.disabled=False
-            else:
-                self.copy_button.disabled=True
-            self.update()
+        self._result = value
+        self.result_text_field.value = value
+        if self._result:
+            self.copy_button.disabled = False
+        else:
+            self.copy_button.disabled = True
+        self.update()
 
     @property
     def is_whisper_running(self):
@@ -72,6 +72,8 @@ class WhisperControl(ft.UserControl):
             self.recognize_button.disabled = False
             self.file_button.disabled = False
             self.model_dropdown.disabled = False
+            self.bottom_sheet.open = True
+            self.page.update()
         self.update()
 
     @property
@@ -191,9 +193,23 @@ class WhisperControl(ft.UserControl):
             bgcolor=ft.colors.YELLOW_100,
             action_color=ft.colors.ON_PRIMARY_CONTAINER,
         )
-    
+
     def _build_bottom_sheet(self):
-        pass
+        return ft.BottomSheet(
+            ft.Container(
+                ft.Row(
+                    [
+                        ft.Text("Recognition process finished!", expand=True),
+                        ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
+                    ],
+                ),
+                padding=ft.padding.symmetric(vertical=10, horizontal=20),
+            ),
+        )
+
+    def _bottom_sheet_ok_click(self, e):
+        self.bottom_sheet.open = False
+        self.page.update()
 
     def _configure_file_picker(self):
         self.file_picker = ft.FilePicker(on_result=self._on_dialog_result)
