@@ -170,7 +170,7 @@ class WhisperControl(ft.UserControl):
     def _build_progress_ring(self):
         progress_ring = ft.ProgressRing(width=20, height=20, stroke_width=2)
         return ft.Container(
-            content=ft.Row([progress_ring, ft.Text("plese wait...")]),
+            content=ft.Row([progress_ring, ft.Text("please wait...")]),
             padding=ft.padding.only(left=20),
             visible=False,
         )
