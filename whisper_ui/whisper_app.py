@@ -24,8 +24,8 @@ class WhisperApp(ft.UserControl):
         return ft.Container()
 
     def _configure_window(self):
-        self.page.window_height = 510
-        self.page.window_width = 800
+        self.page.window_height = 700
+        self.page.window_width = 1000
         self.page.window_center()
 
     def _build_tabs_control(self):
