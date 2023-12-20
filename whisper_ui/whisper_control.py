@@ -12,20 +12,9 @@ class WhisperControl(ft.UserControl):
         self.page = page
         self._audio_path = ""
         self._result = ""
+        self._time_processed = ""
         self._is_whisper_running = False
-        self.file_button = self._build_file_button()
-        self.selected_text_field = self._build_selected_file()
-        self.model_dropdown = self._build_model_dropdown()
-        self.recognize_button = self._build_recognize_button()
-        self.progress_ring = self._build_progress_ring()
-        self.result_text_field = self._build_result_text_field()
-        self.copy_button = self._build_copy_button()
-        self.page.snack_bar = self._build_snack_bar()
-
-        self.bottom_sheet = self._build_bottom_sheet()
-        self.page.overlay.append(self.bottom_sheet)
-
-        self._configure_file_picker()
+        self._build_controls()
 
     @property
     def audio_path(self):
@@ -75,11 +64,37 @@ class WhisperControl(ft.UserControl):
             self.bottom_sheet.open = True
             self.page.update()
         self.update()
+    
+    @property
+    def time_processed(self):
+        """Property shows how much time is recognized"""
+        return self._time_processed
+    
+    @time_processed.setter
+    def time_processed(self, value:str):
+        self._time_processed = value
+        self.time_processed_text.value = value
+        self.update()
+        
 
     @property
     def model_name(self):
         """Whisper model name"""
         return self.model_dropdown.value.lower()
+    
+    def _build_controls(self):
+        self.file_button = self._build_file_button()
+        self.selected_text_field = self._build_selected_file()
+        self.model_dropdown = self._build_model_dropdown()
+        self.recognize_button = self._build_recognize_button()
+        self.time_processed_text = self._buid_time_processed_text()
+        self.progress_ring = self._build_progress_ring()
+        self.result_text_field = self._build_result_text_field()
+        self.copy_button = self._build_copy_button()
+        self.page.snack_bar = self._build_snack_bar()
+        self.bottom_sheet = self._build_bottom_sheet()
+        self.page.overlay.append(self.bottom_sheet)
+        self._configure_file_picker()
 
     def build(self):
         return ft.Column(
@@ -170,10 +185,12 @@ class WhisperControl(ft.UserControl):
     def _build_progress_ring(self):
         progress_ring = ft.ProgressRing(width=20, height=20, stroke_width=2)
         return ft.Container(
-            content=ft.Row([progress_ring, ft.Text("please wait...")]),
+            content=ft.Row([progress_ring, ft.Text(f"please wait..."), self.time_processed_text]),
             padding=ft.padding.only(left=20),
             visible=False,
         )
+    def _buid_time_processed_text(self):
+        return ft.Text(self.time_processed)
 
     def _build_copy_button(self):
         return ft.FloatingActionButton(

@@ -349,7 +349,7 @@ def transcribe(
                     output_data = make_safe(line)
                     print(output_data)
                     output_data_receive(output_data)
-                    partial_result_receive(text)
+                    partial_result_receive(text, format_timestamp(end))
 
             # if a segment is instantaneous or does not contain text, clear it
             for i, segment in enumerate(current_segments):

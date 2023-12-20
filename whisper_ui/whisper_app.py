@@ -34,7 +34,7 @@ class WhisperApp(ft.UserControl):
                     text="Main",
                     content=self.whisper_control,
                 ),
-                ft.Tab(text="Output", content=self.whisper_output_control),
+                ft.Tab(content=self.whisper_output_control, icon = ft.icons.TERMINAL_OUTLINED),
             ],
             expand=True,
         )
@@ -51,11 +51,14 @@ class WhisperApp(ft.UserControl):
         )
         self.whisper_control.is_whisper_running = False
 
-    def partial_result_received(self, partial_result: str):
+    def partial_result_received(self, partial_result: str, time_processed: str):
         if self.whisper_control.result == "":
             self.whisper_control.result = partial_result.lstrip()
         else:
             self.whisper_control.result += partial_result
+        
+        self.whisper_control.time_processed = time_processed
+        
 
     def output_data_received(self, partial_output_data):
             self.whisper_output_control.result += partial_output_data + "\n"
