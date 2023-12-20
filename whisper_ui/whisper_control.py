@@ -1,18 +1,21 @@
 import flet as ft
 import pyperclip
+from  whisper_ui.whisper_output_control import WhisperOutputControl
 
 
 class WhisperControl(ft.UserControl):
     BUTTON_WIDTH = 150
     FILE_EXTENSIONS = ["wav", "mp3"]
+    DEFAULT_TIME_VALUE = "00:00"
 
-    def __init__(self, page: ft.Page, recognize_callbak):
+    def __init__(self, page: ft.Page, output_control: WhisperOutputControl, recognize_callbak):
         super().__init__()
         self.recognize_callbak = recognize_callbak
         self.page = page
+        self.output_control = output_control
         self._audio_path = ""
         self._result = ""
-        self._time_processed = ""
+        self._time_processed = self.DEFAULT_TIME_VALUE
         self._is_whisper_running = False
         self._build_controls()
 
@@ -52,6 +55,8 @@ class WhisperControl(ft.UserControl):
     def is_whisper_running(self, value: bool):
         self._is_whisper_running = value
         if value:
+            self.result = ""
+            self.output_control.result = ""
             self.progress_ring.visible = True
             self.recognize_button.disabled = True
             self.file_button.disabled = True
@@ -62,26 +67,26 @@ class WhisperControl(ft.UserControl):
             self.file_button.disabled = False
             self.model_dropdown.disabled = False
             self.bottom_sheet.open = True
+            self.time_processed = self.DEFAULT_TIME_VALUE
             self.page.update()
         self.update()
-    
+
     @property
     def time_processed(self):
         """Property shows how much time is recognized"""
         return self._time_processed
-    
+
     @time_processed.setter
-    def time_processed(self, value:str):
+    def time_processed(self, value: str):
         self._time_processed = value
         self.time_processed_text.value = value
         self.update()
-        
 
     @property
     def model_name(self):
         """Whisper model name"""
         return self.model_dropdown.value.lower()
-    
+
     def _build_controls(self):
         self.file_button = self._build_file_button()
         self.selected_text_field = self._build_selected_file()
@@ -183,12 +188,28 @@ class WhisperControl(ft.UserControl):
         return ft.TextField(label="Selected file", disabled=True, expand=True)
 
     def _build_progress_ring(self):
-        progress_ring = ft.ProgressRing(width=20, height=20, stroke_width=2)
-        return ft.Container(
-            content=ft.Row([progress_ring, ft.Text(f"please wait..."), self.time_processed_text]),
-            padding=ft.padding.only(left=20),
+        progress_ring = ft.Container(
+            ft.ProgressRing(width=20, height=20, stroke_width=2),
+            margin=ft.margin.only(left=20, right=10),
+        )
+        return ft.Row(
+            [
+                progress_ring,
+                ft.Column(
+                    [
+                        ft.Text("Please wait..."),
+                        ft.Row(
+                            [
+                                ft.Text("Already recognized:"),
+                                self.time_processed_text,
+                            ]
+                        ),
+                    ],
+                ),
+            ],
             visible=False,
         )
+
     def _buid_time_processed_text(self):
         return ft.Text(self.time_processed)
 

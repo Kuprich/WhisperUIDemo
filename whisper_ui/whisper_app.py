@@ -12,8 +12,10 @@ class WhisperApp(ft.UserControl):
 
         self._configure_window()
 
-        self.whisper_control = WhisperControl(self.page, self.recognize_button_clicked)
         self.whisper_output_control = WhisperOutputControl()
+        self.whisper_control = WhisperControl(
+            self.page, self.whisper_output_control, self.recognize_button_clicked
+        )
         self.tabs_control = self._build_tabs_control()
 
         page.add(self.tabs_control)
@@ -34,14 +36,14 @@ class WhisperApp(ft.UserControl):
                     text="Main",
                     content=self.whisper_control,
                 ),
-                ft.Tab(content=self.whisper_output_control, icon = ft.icons.TERMINAL_OUTLINED),
+                ft.Tab(
+                    content=self.whisper_output_control, icon=ft.icons.TERMINAL_OUTLINED
+                ),
             ],
             expand=True,
         )
 
     def recognize_button_clicked(self, e):
-        self.whisper_control.result = ""
-        self.whisper_output_control.result = ""
         self.whisper_control.is_whisper_running = True
         whisper_service.recognize(
             audio=self.whisper_control.audio_path,
@@ -56,9 +58,8 @@ class WhisperApp(ft.UserControl):
             self.whisper_control.result = partial_result.lstrip()
         else:
             self.whisper_control.result += partial_result
-        
+
         self.whisper_control.time_processed = time_processed
-        
 
     def output_data_received(self, partial_output_data):
-            self.whisper_output_control.result += partial_output_data + "\n"
+        self.whisper_output_control.result += partial_output_data + "\n"
