@@ -33,17 +33,7 @@ class WhisperApp(ft.UserControl):
             animation_duration=200,
             tabs=[
                 ft.Tab(
-                    tab_content=ft.Row(
-                        [
-                            ft.PopupMenuButton(
-                                items=[
-                                    ft.PopupMenuItem(text="single"),
-                                    ft.PopupMenuItem(text="multiple"),
-                                ]
-                            ),
-                            ft.Text("Main"),
-                        ]
-                    ),
+                    "Main",
                     content=self.whisper_control,
                 ),
                 ft.Tab(
@@ -53,17 +43,13 @@ class WhisperApp(ft.UserControl):
             expand=True,
         )
 
-    def menu_button_clicked(self, e):
-        pass
-
     def recognize_button_clicked(self, e):
-        is_success = whisper_service.recognize(
+        return whisper_service.recognize(
             audio=self.whisper_control.audio_path,
             model_name=self.whisper_control.model_name,
             partial_result_received=self.partial_result_received,
             output_data_received=self.output_data_received,
         )
-        return is_success
 
     def partial_result_received(self, partial_result: str, time_processed: str):
         if self.whisper_control.result == "":
