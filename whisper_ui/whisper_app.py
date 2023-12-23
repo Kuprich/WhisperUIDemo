@@ -44,14 +44,13 @@ class WhisperApp(ft.UserControl):
         )
 
     def recognize_button_clicked(self, e):
-        self.whisper_control.is_whisper_running = True
         whisper_service.recognize(
             audio=self.whisper_control.audio_path,
             model_name=self.whisper_control.model_name,
             partial_result_received=self.partial_result_received,
             output_data_received=self.output_data_received,
         )
-        self.whisper_control.is_whisper_running = False
+
 
     def partial_result_received(self, partial_result: str, time_processed: str):
         if self.whisper_control.result == "":

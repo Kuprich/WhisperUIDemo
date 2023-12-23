@@ -8,9 +8,9 @@ class WhisperControl(ft.UserControl):
     FILE_EXTENSIONS = ["wav", "mp3"]
     DEFAULT_TIME_VALUE = "00:00"
 
-    def __init__(self, page: ft.Page, output_control: WhisperOutputControl, recognize_callbak):
+    def __init__(self, page: ft.Page, output_control: WhisperOutputControl, recognize_button_clicked):
         super().__init__()
-        self.recognize_callbak = recognize_callbak
+        self.recognize_button_clicked = recognize_button_clicked
         self.page = page
         self.output_control = output_control
         self._audio_path = ""
@@ -136,13 +136,20 @@ class WhisperControl(ft.UserControl):
             label="Model",
             width=self.BUTTON_WIDTH,
             options=[
-                ft.dropdown.Option("Tiny"),
-                ft.dropdown.Option("Base"),
-                ft.dropdown.Option("Small"),
-                ft.dropdown.Option("Medium"),
-                ft.dropdown.Option("Large-v3"),
+                ft.dropdown.Option("tiny.en"),
+                ft.dropdown.Option("tiny"),
+                ft.dropdown.Option("base.en"),
+                ft.dropdown.Option("base"),
+                ft.dropdown.Option("small.en"),
+                ft.dropdown.Option("small"),
+                ft.dropdown.Option("medium.en"),
+                ft.dropdown.Option("medium"),
+                ft.dropdown.Option("large"),
+                ft.dropdown.Option("large-v1"),
+                ft.dropdown.Option("large-v2"),
+                ft.dropdown.Option("large-v3"),
             ],
-            value="Base",
+            value="base",
             tooltip="Select whisper recognition model",
         )
 
@@ -154,7 +161,7 @@ class WhisperControl(ft.UserControl):
                 spacing=5,
             ),
             shape=ft.RoundedRectangleBorder(radius=5),
-            on_click=self.recognize_callbak,
+            on_click=self._recognize_button_on_click,
             width=self.BUTTON_WIDTH,
             disabled=True,
             tooltip="Start recognition Process",
@@ -261,3 +268,8 @@ class WhisperControl(ft.UserControl):
         pyperclip.copy(self.result)
         self.page.snack_bar.open = True
         self.page.update()
+        
+    def _recognize_button_on_click(self, e):
+        self.is_whisper_running = True
+        self.recognize_button_clicked(e)
+        self.is_whisper_running = False
