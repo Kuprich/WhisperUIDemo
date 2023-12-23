@@ -1,14 +1,21 @@
 import flet as ft
 import pyperclip
-from  whisper_ui.whisper_output_control import WhisperOutputControl
+from whisper_ui.whisper_output_control import WhisperOutputControl
 
 
 class WhisperControl(ft.UserControl):
     BUTTON_WIDTH = 150
     FILE_EXTENSIONS = ["wav", "mp3"]
     DEFAULT_TIME_VALUE = "00:00"
+    BOTTOM_SHEET_SUCCESS = "Recognition process successefully finished!"
+    BOTTOM_SHEET_FAIL = "The recognition process has completed with an error! Check output tab!"
 
-    def __init__(self, page: ft.Page, output_control: WhisperOutputControl, recognize_button_clicked):
+    def __init__(
+        self,
+        page: ft.Page,
+        output_control: WhisperOutputControl,
+        recognize_button_clicked,
+    ):
         super().__init__()
         self.recognize_button_clicked = recognize_button_clicked
         self.page = page
@@ -47,31 +54,6 @@ class WhisperControl(ft.UserControl):
         self.update()
 
     @property
-    def is_whisper_running(self):
-        """True, if whisper recognition process running"""
-        return self._is_whisper_running
-
-    @is_whisper_running.setter
-    def is_whisper_running(self, value: bool):
-        self._is_whisper_running = value
-        if value:
-            self.result = ""
-            self.output_control.result = ""
-            self.progress_ring.visible = True
-            self.recognize_button.disabled = True
-            self.file_button.disabled = True
-            self.model_dropdown.disabled = True
-        else:
-            self.progress_ring.visible = False
-            self.recognize_button.disabled = False
-            self.file_button.disabled = False
-            self.model_dropdown.disabled = False
-            self.bottom_sheet.open = True
-            self.time_processed = self.DEFAULT_TIME_VALUE
-            self.page.update()
-        self.update()
-
-    @property
     def time_processed(self):
         """Property shows how much time is recognized"""
         return self._time_processed
@@ -97,7 +79,9 @@ class WhisperControl(ft.UserControl):
         self.result_text_field = self._build_result_text_field()
         self.copy_button = self._build_copy_button()
         self.page.snack_bar = self._build_snack_bar()
-        self.bottom_sheet = self._build_bottom_sheet()
+        self.bottom_sheet = self._build_bottom_sheet(
+            content=self._build_bottom_sheet_content(self.BOTTOM_SHEET_SUCCESS)
+        )
         self.page.overlay.append(self.bottom_sheet)
         self._configure_file_picker()
 
@@ -239,17 +223,22 @@ class WhisperControl(ft.UserControl):
             action_color=ft.colors.ON_PRIMARY_CONTAINER,
         )
 
-    def _build_bottom_sheet(self):
-        return ft.BottomSheet(
-            ft.Container(
-                ft.Row(
-                    [
-                        ft.Text("Recognition process finished!", expand=True),
-                        ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
-                    ],
-                ),
-                padding=ft.padding.symmetric(vertical=10, horizontal=20),
+    def _build_bottom_sheet(self, content: ft.Control):
+        return ft.BottomSheet(content)
+
+    def _build_bottom_sheet_content(self, text):
+        return ft.Container(
+            ft.Row(
+                [
+                    ft.Text(
+                        text,
+                        expand=True,
+                        text_align=ft.TextAlign.CENTER
+                    ),
+                    ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
+                ],
             ),
+            padding=ft.padding.symmetric(vertical=10, horizontal=20),
         )
 
     def _bottom_sheet_ok_click(self, e):
@@ -268,8 +257,31 @@ class WhisperControl(ft.UserControl):
         pyperclip.copy(self.result)
         self.page.snack_bar.open = True
         self.page.update()
-        
+
+    def _whiper_service_started(self):
+        self.result = ""
+        self.output_control.result = ""
+        self.progress_ring.visible = True
+        self.recognize_button.disabled = True
+        self.file_button.disabled = True
+        self.model_dropdown.disabled = True
+        self.update()
+
+    def _whiper_service_finished(self, is_success: bool):
+        self.progress_ring.visible = False
+        self.recognize_button.disabled = False
+        self.file_button.disabled = False
+        self.model_dropdown.disabled = False
+        self.time_processed = self.DEFAULT_TIME_VALUE
+        if not is_success:
+            self.bottom_sheet.content = self._build_bottom_sheet_content(
+                self.BOTTOM_SHEET_FAIL
+            )
+        self.bottom_sheet.open = True
+        self.page.update()
+        self.update()
+
     def _recognize_button_on_click(self, e):
-        self.is_whisper_running = True
-        self.recognize_button_clicked(e)
-        self.is_whisper_running = False
+        self._whiper_service_started()
+        is_success = self.recognize_button_clicked(e)
+        self._whiper_service_finished(is_success)
