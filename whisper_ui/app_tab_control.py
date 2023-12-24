@@ -25,7 +25,8 @@ class AppTabControl(ft.UserControl):
             recognize_button_clicked=recognize_button_clicked,
         )
         self.whisper_batch_control = WhisperBatchControl(
-            get_directory_dialog=get_directory_dialog
+            get_directory_dialog=get_directory_dialog,
+            pick_files_dialog=pick_files_dialog
         )
         self.popup_menu_button = self._build_popup_menu_button()
         self.main_tab = self._build_main_tab()

@@ -1,10 +1,11 @@
 import flet as ft
 import pyperclip
+import whisper_ui.shared_controls as shared_controls
 from whisper_ui.whisper_output_control import WhisperOutputControl
 
 
 class WhisperSingleControl(ft.UserControl):
-    BUTTON_WIDTH = 150
+    BUTTON_WIDTH = 170
     FILE_EXTENSIONS = ["wav", "mp3"]
     DEFAULT_TIME_VALUE = "00:00"
     BOTTOM_SHEET_SUCCESS = "Recognition process successefully finished!"
@@ -141,18 +142,15 @@ class WhisperSingleControl(ft.UserControl):
         )
 
     def _build_recognize_button(self):
-        return ft.FloatingActionButton(
-            content=ft.Row(
-                [ft.Icon(ft.icons.TEXT_ROTATION_NONE), ft.Text("Recognize")],
-                alignment="center",
-                spacing=5,
-            ),
-            shape=ft.RoundedRectangleBorder(radius=5),
-            on_click=self._recognize_button_on_click,
-            width=self.BUTTON_WIDTH,
-            disabled=True,
+        recognize_button = shared_controls.build_elevated_button(
+            text="Recognize",
+            icon=ft.icons.TEXT_ROTATION_NONE,
             tooltip="Start recognition Process",
+            on_click=self._recognize_button_on_click,
         )
+        recognize_button.disabled = True
+        recognize_button.width = self.BUTTON_WIDTH
+        return recognize_button
 
     def _build_result_text_field(self):
         return ft.TextField(
@@ -164,19 +162,17 @@ class WhisperSingleControl(ft.UserControl):
         )
 
     def _build_file_button(self):
-        return ft.FloatingActionButton(
-            content=ft.Row(
-                [ft.Icon(ft.icons.AUDIO_FILE_OUTLINED), ft.Text("Select audio file")],
-                alignment="center",
-                spacing=5,
-            ),
-            shape=ft.RoundedRectangleBorder(radius=5),
+        file_button = shared_controls.build_elevated_button(
+            text="Select audio file",
+            icon=ft.icons.AUDIO_FILE_OUTLINED,
+            tooltip="Select audio from FileExplorer",
             on_click=lambda _: self.pick_files_dialog.pick_files(
                 allow_multiple=False, allowed_extensions=self.FILE_EXTENSIONS
             ),
-            width=self.BUTTON_WIDTH,
-            tooltip="Select audio from FileExplorer",
         )
+        file_button.width = self.BUTTON_WIDTH
+
+        return file_button
 
     def _build_selected_file(self):
         return ft.TextField(label="Selected file", disabled=True, expand=True)
@@ -208,13 +204,13 @@ class WhisperSingleControl(ft.UserControl):
         return ft.Text(self.time_processed)
 
     def _build_copy_button(self):
-        return ft.FloatingActionButton(
+        copy_button = shared_controls.build_icon_button(
             icon=ft.icons.COPY_ALL_OUTLINED,
             on_click=self._copy_button_click,
-            bgcolor=ft.colors.YELLOW_100,
             tooltip="Copy all text from result area",
             disabled=True,
         )
+        return copy_button
 
     def configure_snack_bar(self):
         self.snack_bar.content = ft.Text(
