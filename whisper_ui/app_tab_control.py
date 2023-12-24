@@ -1,23 +1,34 @@
 import flet as ft
 
+from whisper_ui.whisper_single_control import WhisperSingleControl
+from whisper_ui.whisper_output_control import WhisperOutputControl
+from whisper_ui.whisper_batch_control import WhisperBatchControl
+
 
 class AppTabControl(ft.UserControl):
     def __init__(
         self,
-        page,
-        whisper_single_control: ft.UserControl,
-        whisper_batch_control: ft.UserControl,
-        whisper_output_control: ft.UserControl,
+        page: ft.Page,
+        pick_files_dialog: ft.FilePicker,
+        snack_bar: ft.SnackBar,
+        recognize_button_clicked,
     ):
         super().__init__()
         self.page = page
-        self.whisper_single_control = whisper_single_control
-        self.whisper_batch_control = whisper_batch_control
-        self.whisper_output_control = whisper_output_control
+
+        self.whisper_output_control = WhisperOutputControl()
+        self.whisper_single_control = WhisperSingleControl(
+            page=page,
+            pick_files_dialog=pick_files_dialog,
+            snack_bar=snack_bar,
+            output_control=self.whisper_output_control,
+            recognize_button_clicked=recognize_button_clicked,
+        )
+        self.whisper_batch_control = WhisperBatchControl()
+
         self.popup_menu_button = self._build_popup_menu_button()
         self.main_tab = self._build_main_tab()
-        self.tabs = self._build_tabs()
-        self.page.add(self.tabs)
+        self.page.add(self._build_tabs())
 
     def build(self):
         return ft.Container()

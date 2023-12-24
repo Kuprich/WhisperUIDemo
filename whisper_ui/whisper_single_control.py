@@ -16,11 +16,13 @@ class WhisperSingleControl(ft.UserControl):
         self,
         page: ft.Page,
         pick_files_dialog: ft.FilePicker,
+        snack_bar: ft.SnackBar,
         output_control: WhisperOutputControl,
         recognize_button_clicked,
     ):
         super().__init__()
         self.pick_files_dialog = pick_files_dialog
+        self.snack_bar = snack_bar
         self.pick_files_dialog.on_result = self._on_dialog_result
         self.recognize_button_clicked = recognize_button_clicked
         self.page = page
@@ -83,11 +85,8 @@ class WhisperSingleControl(ft.UserControl):
         self.progress_ring = self._build_progress_ring()
         self.result_text_field = self._build_result_text_field()
         self.copy_button = self._build_copy_button()
-        self.page.snack_bar = self._build_snack_bar()
-        self.bottom_sheet = self._build_bottom_sheet(
-            content=self._build_bottom_sheet_content(self.BOTTOM_SHEET_SUCCESS)
-        )
-        self.page.overlay.append(self.bottom_sheet)
+
+        self.configure_snack_bar()
 
     def build(self):
         return ft.Column(
@@ -217,18 +216,13 @@ class WhisperSingleControl(ft.UserControl):
             disabled=True,
         )
 
-    def _build_snack_bar(self):
-        return ft.SnackBar(
-            content=ft.Text(
-                "Result copied to Clipboard!", color=ft.colors.ON_PRIMARY_CONTAINER
-            ),
-            action="Alright!",
-            bgcolor=ft.colors.YELLOW_100,
-            action_color=ft.colors.ON_PRIMARY_CONTAINER,
+    def configure_snack_bar(self):
+        self.snack_bar.content = ft.Text(
+            "Result copied to Clipboard!", color=ft.colors.ON_PRIMARY_CONTAINER
         )
-
-    def _build_bottom_sheet(self, content: ft.Control):
-        return ft.BottomSheet(content)
+        self.snack_bar.action = "Alright!"
+        self.snack_bar.bgcolor = ft.colors.YELLOW_100
+        self.snack_bar.action_color = ft.colors.ON_PRIMARY_CONTAINER
 
     def _build_bottom_sheet_content(self, text):
         return ft.Container(
@@ -242,7 +236,7 @@ class WhisperSingleControl(ft.UserControl):
         )
 
     def _bottom_sheet_ok_click(self, e):
-        self.bottom_sheet.open = False
+        self.page.bottom_sheet.open = False
         self.page.update()
 
     def _on_dialog_result(self, e: ft.FilePickerResultEvent):
@@ -269,11 +263,15 @@ class WhisperSingleControl(ft.UserControl):
         self.file_button.disabled = False
         self.model_dropdown.disabled = False
         self.time_processed = self.DEFAULT_TIME_VALUE
-        if not is_success:
-            self.bottom_sheet.content = self._build_bottom_sheet_content(
+        if is_success:
+            self.page.bottom_sheet.content = self._build_bottom_sheet_content(
+                self.BOTTOM_SHEET_SUCCESS
+            )
+        else:
+            self.page.bottom_sheet.content = self._build_bottom_sheet_content(
                 self.BOTTOM_SHEET_FAIL
             )
-        self.bottom_sheet.open = True
+        self.page.bottom_sheet.open = True
         self.page.update()
         self.update()
 
