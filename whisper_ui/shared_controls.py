@@ -8,9 +8,10 @@ def build_elevated_button(
     icon: str = None,
     tooltip: str = None,
     on_click=None,
+    disabled: bool = None,
 ):
     return ft.ElevatedButton(
-        text = text,
+        text=text,
         icon=icon,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5), padding=15),
         height=BUTTON_HEIGHT,
@@ -18,11 +19,9 @@ def build_elevated_button(
         tooltip=tooltip,
     )
 
+
 def build_icon_button(
-    icon: str = None,
-    tooltip: str = None,
-    on_click=None,
-    disabled=None
+    icon: str = None, tooltip: str = None, on_click=None, disabled=None
 ):
     return ft.IconButton(
         icon=icon,
@@ -30,5 +29,5 @@ def build_icon_button(
         height=BUTTON_HEIGHT,
         on_click=on_click,
         tooltip=tooltip,
-        disabled=disabled
+        disabled=disabled,
     )
