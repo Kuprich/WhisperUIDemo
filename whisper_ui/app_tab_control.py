@@ -10,12 +10,12 @@ class AppTabControl(ft.UserControl):
         self,
         page: ft.Page,
         pick_files_dialog: ft.FilePicker,
+        get_directory_dialog: ft.FilePicker,
         snack_bar: ft.SnackBar,
         recognize_button_clicked,
     ):
         super().__init__()
         self.page = page
-
         self.whisper_output_control = WhisperOutputControl()
         self.whisper_single_control = WhisperSingleControl(
             page=page,
@@ -24,8 +24,9 @@ class AppTabControl(ft.UserControl):
             output_control=self.whisper_output_control,
             recognize_button_clicked=recognize_button_clicked,
         )
-        self.whisper_batch_control = WhisperBatchControl()
-
+        self.whisper_batch_control = WhisperBatchControl(
+            get_directory_dialog=get_directory_dialog
+        )
         self.popup_menu_button = self._build_popup_menu_button()
         self.main_tab = self._build_main_tab()
         self.page.add(self._build_tabs())

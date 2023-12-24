@@ -112,7 +112,7 @@ class WhisperSingleControl(ft.UserControl):
                             ),
                         ]
                     ),
-                    padding=ft.padding.only(top=10, bottom=5),
+                    padding=ft.padding.only(top=10),
                 ),
                 ft.Row([self.result_text_field], expand=True),
             ]

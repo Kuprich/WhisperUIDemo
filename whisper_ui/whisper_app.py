@@ -12,14 +12,16 @@ class WhisperApp(ft.UserControl):
         self._configure_window()
 
         self.pick_files_dialog = ft.FilePicker()
+        self.get_directory_dialog = ft.FilePicker()
+        
         self.page.snack_bar = ft.SnackBar(ft.Container())
         self.page.bottom_sheet = ft.BottomSheet(ft.Container())
-        self.page.overlay.append(self.pick_files_dialog)
-        self.page.overlay.append(self.page.bottom_sheet)
+        self.page.overlay.extend([self.pick_files_dialog, self.get_directory_dialog, self.page.bottom_sheet])
 
         self.tabs = AppTabControl(
             page=page,
             pick_files_dialog=self.pick_files_dialog,
+            get_directory_dialog = self.get_directory_dialog,
             snack_bar=self.page.snack_bar,
             recognize_button_clicked=self.recognize_button_clicked,
         )
