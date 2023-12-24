@@ -3,7 +3,7 @@ import pyperclip
 from whisper_ui.whisper_output_control import WhisperOutputControl
 
 
-class WhisperControl(ft.UserControl):
+class WhisperSingleControl(ft.UserControl):
     BUTTON_WIDTH = 150
     FILE_EXTENSIONS = ["wav", "mp3"]
     DEFAULT_TIME_VALUE = "00:00"
