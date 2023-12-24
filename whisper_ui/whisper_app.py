@@ -12,10 +12,14 @@ class WhisperApp(ft.UserControl):
 
         self.page = page
         self._configure_window()
+        
+        self.pick_files_dialog = ft.FilePicker()
+        page.overlay.extend([self.pick_files_dialog])
+        
 
         self.whisper_output_control = WhisperOutputControl()
         self.whisper_single_control = WhisperSingleControl(
-            self.page, self.whisper_output_control, self.recognize_button_clicked
+            page, self.pick_files_dialog, self.whisper_output_control, self.recognize_button_clicked
         )
         self.whisper_batch_control = WhisperBatchControl()
         
@@ -25,6 +29,7 @@ class WhisperApp(ft.UserControl):
 
     def build(self):
         return ft.Container()
+    
 
     def _configure_window(self):
         self.page.window_height = 700
@@ -36,12 +41,12 @@ class WhisperApp(ft.UserControl):
         is_success = whisper_service.recognize(
             audio=self.whisper_single_control.audio_path,
             model_name=self.whisper_single_control.model_name,
-            partial_result_received=self.partial_result_received,
-            output_data_received=self.output_data_received,
+            partial_result_received=self._partial_result_received,
+            output_data_received=self._output_data_received,
         )
         return is_success
 
-    def partial_result_received(self, partial_result: str, time_processed: str):
+    def _partial_result_received(self, partial_result: str, time_processed: str):
         if self.whisper_single_control.result == "":
             self.whisper_single_control.result = partial_result.lstrip()
         else:
@@ -49,5 +54,6 @@ class WhisperApp(ft.UserControl):
 
         self.whisper_single_control.time_processed = time_processed
 
-    def output_data_received(self, partial_output_data):
+    def _output_data_received(self, partial_output_data):
         self.whisper_output_control.result += partial_output_data + "\n"
+        

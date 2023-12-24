@@ -8,15 +8,20 @@ class WhisperSingleControl(ft.UserControl):
     FILE_EXTENSIONS = ["wav", "mp3"]
     DEFAULT_TIME_VALUE = "00:00"
     BOTTOM_SHEET_SUCCESS = "Recognition process successefully finished!"
-    BOTTOM_SHEET_FAIL = "The recognition process has completed with an error! Check output tab!"
+    BOTTOM_SHEET_FAIL = (
+        "The recognition process has completed with an error! Check output tab!"
+    )
 
     def __init__(
         self,
         page: ft.Page,
+        pick_files_dialog: ft.FilePicker,
         output_control: WhisperOutputControl,
         recognize_button_clicked,
     ):
         super().__init__()
+        self.pick_files_dialog = pick_files_dialog
+        self.pick_files_dialog.on_result = self._on_dialog_result
         self.recognize_button_clicked = recognize_button_clicked
         self.page = page
         self.output_control = output_control
@@ -83,7 +88,6 @@ class WhisperSingleControl(ft.UserControl):
             content=self._build_bottom_sheet_content(self.BOTTOM_SHEET_SUCCESS)
         )
         self.page.overlay.append(self.bottom_sheet)
-        self._configure_file_picker()
 
     def build(self):
         return ft.Column(
@@ -168,7 +172,7 @@ class WhisperSingleControl(ft.UserControl):
                 spacing=5,
             ),
             shape=ft.RoundedRectangleBorder(radius=5),
-            on_click=lambda _: self.file_picker.pick_files(
+            on_click=lambda _: self.pick_files_dialog.pick_files(
                 allow_multiple=False, allowed_extensions=self.FILE_EXTENSIONS
             ),
             width=self.BUTTON_WIDTH,
@@ -230,11 +234,7 @@ class WhisperSingleControl(ft.UserControl):
         return ft.Container(
             ft.Row(
                 [
-                    ft.Text(
-                        text,
-                        expand=True,
-                        text_align=ft.TextAlign.CENTER
-                    ),
+                    ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
                     ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
                 ],
             ),
@@ -244,10 +244,6 @@ class WhisperSingleControl(ft.UserControl):
     def _bottom_sheet_ok_click(self, e):
         self.bottom_sheet.open = False
         self.page.update()
-
-    def _configure_file_picker(self):
-        self.file_picker = ft.FilePicker(on_result=self._on_dialog_result)
-        self.page.overlay.append(self.file_picker)
 
     def _on_dialog_result(self, e: ft.FilePickerResultEvent):
         if e.files:
