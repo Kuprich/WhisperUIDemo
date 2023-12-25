@@ -41,8 +41,8 @@ def transcribe(
     word_timestamps: bool = False,
     prepend_punctuations: str = "\"'“¿([{-",
     append_punctuations: str = "\"'.。,，!！?？:：”)]}、",
-    partial_result_receive,
-    output_data_receive,
+    partial_result_receive = None,
+    output_data_receive = None,
     **decode_options,
 ):
     """
@@ -349,7 +349,8 @@ def transcribe(
                     output_data = make_safe(line)
                     print(output_data)
                     output_data_receive(output_data)
-                    partial_result_receive(text, format_timestamp(end).split('.')[0])
+                    if partial_result_receive:
+                        partial_result_receive(text, format_timestamp(end).split('.')[0])
 
             # if a segment is instantaneous or does not contain text, clear it
             for i, segment in enumerate(current_segments):

@@ -1,35 +1,38 @@
 import flet as ft
 
-from whisper_ui.whisper_single_control import WhisperSingleControl
-from whisper_ui.whisper_output_control import WhisperOutputControl
-from whisper_ui.whisper_batch_control import WhisperBatchControl
+from whisper_ui.tab_views.whisper_single_control import WhisperSingleControl
+from whisper_ui.tab_views.whisper_output_control import WhisperOutputControl
+from whisper_ui.tab_views.whisper_batch_control import WhisperBatchControl
 
 
 class AppTabControl(ft.UserControl):
     def __init__(
         self,
         page: ft.Page,
-        pick_files_dialog: ft.FilePicker,
-        get_directory_dialog: ft.FilePicker,
+        pick_files_dialog_single: ft.FilePicker,
+        pick_files_dialog_batch: ft.FilePicker,
+        get_directory_dialog_batch: ft.FilePicker,
         snack_bar: ft.SnackBar,
-        recognize_button_clicked,
+        recognize_button_single_clicked,
+        recognize_button_batch_clicked
     ):
         super().__init__()
         self.page = page
         self.whisper_output_control = WhisperOutputControl()
         self.whisper_single_control = WhisperSingleControl(
             page=page,
-            pick_files_dialog=pick_files_dialog,
+            pick_files_dialog=pick_files_dialog_single,
             snack_bar=snack_bar,
             output_control=self.whisper_output_control,
-            recognize_button_clicked=recognize_button_clicked,
+            recognize_button_clicked=recognize_button_single_clicked,
         )
         self.whisper_batch_control = WhisperBatchControl(
-            get_directory_dialog=get_directory_dialog,
-            pick_files_dialog=pick_files_dialog
+            get_directory_dialog=get_directory_dialog_batch,
+            pick_files_dialog=pick_files_dialog_batch,
+            recognize_button_clicked=recognize_button_batch_clicked
         )
         self.popup_menu_button = self._build_popup_menu_button()
-        self.main_tab = self._build_main_tab()
+        self.main_tab = self._build_main_tab() 
         self.page.add(self._build_tabs())
 
     def build(self):

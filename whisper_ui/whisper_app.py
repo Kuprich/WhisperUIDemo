@@ -11,19 +11,22 @@ class WhisperApp(ft.UserControl):
         self.page = page
         self._configure_window()
 
-        self.pick_files_dialog = ft.FilePicker()
-        self.get_directory_dialog = ft.FilePicker()
+        self.pick_files_dialog_single = ft.FilePicker()
+        self.pick_files_dialog_batch = ft.FilePicker()
+        self.get_directory_dialog_batch = ft.FilePicker()
         
         self.page.snack_bar = ft.SnackBar(ft.Container())
         self.page.bottom_sheet = ft.BottomSheet(ft.Container())
-        self.page.overlay.extend([self.pick_files_dialog, self.get_directory_dialog, self.page.bottom_sheet])
+        self.page.overlay.extend([self.pick_files_dialog_single, self.pick_files_dialog_batch, self.get_directory_dialog_batch, self.page.bottom_sheet])
 
         self.tabs = AppTabControl(
             page=page,
-            pick_files_dialog=self.pick_files_dialog,
-            get_directory_dialog = self.get_directory_dialog,
+            pick_files_dialog_single=self.pick_files_dialog_single,
+            pick_files_dialog_batch= self.pick_files_dialog_batch,
+            get_directory_dialog_batch = self.get_directory_dialog_batch,
             snack_bar=self.page.snack_bar,
-            recognize_button_clicked=self.recognize_button_clicked,
+            recognize_button_single_clicked=self._recognize_button_single_clicked,
+            recognize_button_batch_clicked=self._recognize_button_batch_clicked
         )
 
     def build(self):
@@ -34,14 +37,15 @@ class WhisperApp(ft.UserControl):
         self.page.window_width = 1000
         self.page.window_center()
 
-    def recognize_button_clicked(self, e):
-        is_success = whisper_service.recognize(
+    def _recognize_button_single_clicked(self, e):
+        result = whisper_service.recognize(
             audio=self.tabs.whisper_single_control.audio_path,
             model_name=self.tabs.whisper_single_control.model_name,
             partial_result_received=self._partial_result_received,
             output_data_received=self._output_data_received,
         )
-        return is_success
+        return result.is_success
+        
 
     def _partial_result_received(self, partial_result: str, time_processed: str):
         if self.tabs.whisper_single_control.result == "":
@@ -53,3 +57,8 @@ class WhisperApp(ft.UserControl):
 
     def _output_data_received(self, partial_output_data):
         self.tabs.whisper_output_control.result += partial_output_data + "\n"
+        
+    def _recognize_button_batch_clicked(self, e):
+        for audio in self.tabs.whisper_batch_control.audio_list:
+            
+            pass
