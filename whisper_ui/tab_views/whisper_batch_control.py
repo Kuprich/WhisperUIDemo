@@ -39,6 +39,11 @@ class WhisperBatchControl(ft.UserControl):
             self.output_folder_text_field.value = value
             self.recognize_button.disabled = len(self.audio_list) == 0
             self.update()
+    
+    @property
+    def model_name(self):
+        """Wshisper recognition model"""
+        return self.model_dropdown.value.lower()
 
     @property
     def audio_list(self):
@@ -114,7 +119,7 @@ class WhisperBatchControl(ft.UserControl):
         )
 
     def _recognize_button_on_click(self, e):
-        
+        self.recognize_button_clicked(e)
         return
 
     def _build_model_dropdown(self):
