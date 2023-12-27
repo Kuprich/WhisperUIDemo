@@ -7,7 +7,7 @@ class AudioItem():
         self.success_icon_visible = success_icon_visible
 
 
-class AudioList():
+class AudioListContentControl():
     def __init__(self, on_delete_item):
         self.on_item_deleted = on_delete_item
         self._audio_items:list[AudioItem] = []
@@ -57,10 +57,12 @@ class AudioList():
     def disable_delete_icon(self):
         for audio_item in self._audio_items:
             audio_item.delete_icon_disabled = True
+        return self.controls
     
     def reset_file_statuses(self):
         for audio_item in self._audio_items:
             audio_item.success_icon_visible = False
+        return self.controls
     
     def enable_delete_icon(self):
         for audio_item in self._audio_items:

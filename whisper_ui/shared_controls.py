@@ -97,15 +97,3 @@ def build_progress_ring(processed_value: ft.Control):
         ],
         visible=False,
     )
-
-
-def build_bottom_sheet_content(text: str, on_click):
-    return ft.Container(
-        ft.Row(
-            [
-                ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
-                ft.ElevatedButton("OK", on_click=on_click),
-            ],
-        ),
-        padding=ft.padding.symmetric(vertical=10, horizontal=20),
-    )

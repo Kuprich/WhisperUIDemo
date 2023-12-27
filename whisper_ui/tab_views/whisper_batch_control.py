@@ -1,6 +1,7 @@
+import os
 import flet as ft
 import whisper_ui.shared_controls as shared_controls
-from whisper_ui.audio_list import AudioList
+from whisper_ui.audio_list import AudioListContentControl
 
 
 class WhisperBatchControl(ft.UserControl):
@@ -18,7 +19,9 @@ class WhisperBatchControl(ft.UserControl):
         self.page = page
         self._processed_value = ""
         self._output_folder = ""
-        self._audio_list = AudioList(on_delete_item=self._audio_list_item_deleted)
+        self._audio_list = AudioListContentControl(
+            on_delete_item=self._audio_list_item_deleted
+        )
 
         self.recognize_button_clicked = recognize_button_clicked
         self.get_directory_dialog = get_directory_dialog
@@ -38,7 +41,9 @@ class WhisperBatchControl(ft.UserControl):
         self.audio_list_control = self._build_audio_list_control(
             self.audio_list.controls
         )
-        self.page.bottom_sheet.content = self._build_bottom_sheet_content(self.BOTTOM_SHEET_TEXT)
+        self.page.bottom_sheet.content = self._build_bottom_sheet_content(
+            self.BOTTOM_SHEET_TEXT
+        )
 
     @property
     def processed_value(self):
@@ -53,30 +58,11 @@ class WhisperBatchControl(ft.UserControl):
     @property
     def audio_list(self):
         return self._audio_list
-    
-    def _build_bottom_sheet_content(self, text):
-        return shared_controls.build_bottom_sheet_content(text, self._bottom_sheet_ok_click)
-
-    def _bottom_sheet_ok_click(self, e):
-        self.page.bottom_sheet.open = False
-        self.page.update()
-
-    def _set_recognize_button_activity(self):
-        self.recognize_button.disabled = (
-            len(self.uploaded_files) == 0 or self.output_folder == ""
-        )
-
-    def _set_remove_all_button_activity(self):
-        self.remove_all_button.disabled = len(self.audio_list.files) == 0
-
-    def _extend_audio_list(self, value: list[str]):
-        self.audio_list_control.controls = self._audio_list.extend(value)
-        self._set_remove_all_button_activity()
-        self._set_recognize_button_activity()
-        self.update()
 
     def _clear_audio_list(self):
-        self.audio_list_control.controls = self._audio_list.clear_audio_list()
+        self.audio_list_control.controls = (
+            self._audio_list.clear_audio_list()
+        )
         self._set_remove_all_button_activity()
         self._set_recognize_button_activity()
         self.update()
@@ -90,6 +76,57 @@ class WhisperBatchControl(ft.UserControl):
     def _update_audio_list_without_buttons(self):
         self.audio_list_control.controls = self._audio_list.controls
         self.update()
+
+    def _extend_audio_list(self, value: list[str]):
+        self.audio_list_control.controls = self._audio_list.extend(
+            value
+        )
+        self._set_remove_all_button_activity()
+        self._set_recognize_button_activity()
+        self.update()
+
+    def _disable_delete_icon_in_audio_list(self):
+        self.audio_list_control.controls = self.audio_list.disable_delete_icon()
+        self.update()
+    
+    def _enable_delete_icon_in_audio_list(self):
+        self.audio_list_control.controls = self.audio_list.enable_delete_icon()
+        self.update()
+    
+    def _reset_statuses_in_audio_list(self):
+        self.audio_list_control.controls = self.audio_list.reset_file_statuses()
+        self.update()
+
+    def _build_bottom_sheet_content(self, text):
+        return ft.Container(
+        ft.Row(
+            [
+                ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
+                ft.Row([
+                    ft.ElevatedButton("Open Containing Folder", on_click = self._bottom_sheet_open_folder_click),
+                    ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
+                ])
+                
+            ],
+        ),
+        padding=ft.padding.symmetric(vertical=10, horizontal=20),
+    )
+
+    def _bottom_sheet_ok_click(self, e):
+        self.page.bottom_sheet.open = False
+        self.page.update()
+    
+    def _bottom_sheet_open_folder_click(self, e):
+        path = self.output_folder
+        os.startfile(path) 
+
+    def _set_recognize_button_activity(self):
+        self.recognize_button.disabled = (
+            len(self.uploaded_files) == 0 or self.output_folder == ""
+        )
+
+    def _set_remove_all_button_activity(self):
+        self.remove_all_button.disabled = len(self.audio_list.files) == 0
 
     @property
     def output_folder(self):
@@ -172,9 +209,8 @@ class WhisperBatchControl(ft.UserControl):
         return
 
     def _whisper_service_started(self):
-        self.audio_list.disable_delete_icon()
-        self.audio_list.reset_file_statuses()
-        self.audio_list_control.controls = self.audio_list.controls
+        self._disable_delete_icon_in_audio_list()
+        self._reset_statuses_in_audio_list()
         self.progress_ring.visible = True
         self.select_output_folder_button.disabled = True
         self.recognize_button.disabled = True
@@ -185,8 +221,8 @@ class WhisperBatchControl(ft.UserControl):
 
     def _whisper_service_finished(self):
         self.audio_list.enable_delete_icon()
-        self.progress_ring.visible = False
         self.audio_list_control.controls = self.audio_list.controls
+        self.progress_ring.visible = False
         self.select_output_folder_button.disabled = False
         self.recognize_button.disabled = False
         self.load_audio_button.disabled = False

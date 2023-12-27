@@ -170,7 +170,15 @@ class WhisperSingleControl(ft.UserControl):
         self.snack_bar.action_color = ft.colors.ON_PRIMARY_CONTAINER
 
     def _build_bottom_sheet_content(self, text):
-        return shared_controls.build_bottom_sheet_content(text, self._bottom_sheet_ok_click)
+        return ft.Container(
+        ft.Row(
+            [
+                ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
+                ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
+            ],
+        ),
+        padding=ft.padding.symmetric(vertical=10, horizontal=20),
+    )
 
     def _bottom_sheet_ok_click(self, e):
         self.page.bottom_sheet.open = False
