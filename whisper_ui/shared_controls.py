@@ -73,3 +73,39 @@ def _build_model_dropdown():
         value="base",
         tooltip="Select whisper recognition model",
     )
+
+
+def build_progress_ring(processed_value: ft.Control):
+    progress_ring = ft.Container(
+        ft.ProgressRing(width=20, height=20, stroke_width=2),
+        margin=ft.margin.only(left=20, right=10),
+    )
+    return ft.Row(
+        [
+            progress_ring,
+            ft.Column(
+                [
+                    ft.Text("Please wait..."),
+                    ft.Row(
+                        [
+                            ft.Text("Already recognized:"),
+                            processed_value,
+                        ]
+                    ),
+                ],
+            ),
+        ],
+        visible=False,
+    )
+
+
+def build_bottom_sheet_content(text: str, on_click):
+    return ft.Container(
+        ft.Row(
+            [
+                ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
+                ft.ElevatedButton("OK", on_click=on_click),
+            ],
+        ),
+        padding=ft.padding.symmetric(vertical=10, horizontal=20),
+    )

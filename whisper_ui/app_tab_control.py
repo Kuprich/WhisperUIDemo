@@ -14,25 +14,26 @@ class AppTabControl(ft.UserControl):
         get_directory_dialog_batch: ft.FilePicker,
         snack_bar: ft.SnackBar,
         recognize_button_single_clicked,
-        recognize_button_batch_clicked
+        recognize_button_batch_clicked,
     ):
         super().__init__()
         self.page = page
+
         self.whisper_output_control = WhisperOutputControl()
         self.whisper_single_control = WhisperSingleControl(
             page=page,
             pick_files_dialog=pick_files_dialog_single,
             snack_bar=snack_bar,
-            output_control=self.whisper_output_control,
             recognize_button_clicked=recognize_button_single_clicked,
         )
         self.whisper_batch_control = WhisperBatchControl(
+            page = page,
             get_directory_dialog=get_directory_dialog_batch,
             pick_files_dialog=pick_files_dialog_batch,
-            recognize_button_clicked=recognize_button_batch_clicked
+            recognize_button_clicked=recognize_button_batch_clicked,
         )
         self.popup_menu_button = self._build_popup_menu_button()
-        self.main_tab = self._build_main_tab() 
+        self.main_tab = self._build_main_tab()
         self.page.add(self._build_tabs())
 
     def build(self):
@@ -90,3 +91,4 @@ class AppTabControl(ft.UserControl):
         e.control.checked = True
         self.main_tab.content = self.whisper_batch_control
         self.page.update()
+

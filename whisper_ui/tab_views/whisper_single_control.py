@@ -1,7 +1,6 @@
 import flet as ft
 import pyperclip
 import whisper_ui.shared_controls as shared_controls
-from whisper_ui.tab_views.whisper_output_control import WhisperOutputControl
 
 
 class WhisperSingleControl(ft.UserControl):
@@ -18,20 +17,17 @@ class WhisperSingleControl(ft.UserControl):
         page: ft.Page,
         pick_files_dialog: ft.FilePicker,
         snack_bar: ft.SnackBar,
-        output_control: WhisperOutputControl,
         recognize_button_clicked,
     ):
         super().__init__()
         self.pick_files_dialog = pick_files_dialog
-        self.snack_bar = snack_bar
         self.pick_files_dialog.on_result = self._on_dialog_result
+        self.snack_bar = snack_bar
         self.recognize_button_clicked = recognize_button_clicked
         self.page = page
-        self.output_control = output_control
         self._audio_path = ""
         self._result = ""
         self._time_processed = self.DEFAULT_TIME_VALUE
-        self._is_whisper_running = False
         self._build_controls()
 
     @property
@@ -151,27 +147,7 @@ class WhisperSingleControl(ft.UserControl):
         return ft.TextField(label="Selected file", disabled=True, expand=True)
 
     def _build_progress_ring(self):
-        progress_ring = ft.Container(
-            ft.ProgressRing(width=20, height=20, stroke_width=2),
-            margin=ft.margin.only(left=20, right=10),
-        )
-        return ft.Row(
-            [
-                progress_ring,
-                ft.Column(
-                    [
-                        ft.Text("Please wait..."),
-                        ft.Row(
-                            [
-                                ft.Text("Already recognized:"),
-                                self.time_processed_text,
-                            ]
-                        ),
-                    ],
-                ),
-            ],
-            visible=False,
-        )
+        return shared_controls.build_progress_ring(self.time_processed_text)
 
     def _buid_time_processed_text(self):
         return ft.Text(self.time_processed)
@@ -194,15 +170,7 @@ class WhisperSingleControl(ft.UserControl):
         self.snack_bar.action_color = ft.colors.ON_PRIMARY_CONTAINER
 
     def _build_bottom_sheet_content(self, text):
-        return ft.Container(
-            ft.Row(
-                [
-                    ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
-                    ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
-                ],
-            ),
-            padding=ft.padding.symmetric(vertical=10, horizontal=20),
-        )
+        return shared_controls.build_bottom_sheet_content(text, self._bottom_sheet_ok_click)
 
     def _bottom_sheet_ok_click(self, e):
         self.page.bottom_sheet.open = False
@@ -219,7 +187,6 @@ class WhisperSingleControl(ft.UserControl):
 
     def _whiper_service_started(self):
         self.result = ""
-        self.output_control.result = ""
         self.progress_ring.visible = True
         self.recognize_button.disabled = True
         self.file_button.disabled = True
@@ -248,3 +215,11 @@ class WhisperSingleControl(ft.UserControl):
         self._whiper_service_started()
         is_success = self.recognize_button_clicked(e)
         self._whiper_service_finished(is_success)
+        
+    def partial_result_received(self, partial_result: str, time_processed: str):
+        if self.result == "":
+            self.result = partial_result.lstrip()
+        else:
+            self.result += partial_result
+        self.time_processed = time_processed
+            
