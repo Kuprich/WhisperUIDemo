@@ -46,50 +46,65 @@ class WhisperApp(ft.UserControl):
         self.page.window_width = 1000
         self.page.window_center()
 
-    def _build_tabs_control(self):
-        return ft.Tabs(
-            animation_duration=200,
-            tabs=[
-                ft.Tab(
-                    tab_content=ft.Row(
-                        [
-                            ft.PopupMenuButton(
-                                items=[
-                                    ft.PopupMenuItem(text="single"),
-                                    ft.PopupMenuItem(text="multiple"),
-                                ]
-                            ),
-                            ft.Text("Main"),
-                        ]
-                    ),
-                    content=self.whisper_control,
-                ),
-                ft.Tab(
-                    content=self.whisper_output_control, icon=ft.icons.TERMINAL_OUTLINED
-                ),
-            ],
-            expand=True,
+    def _disable_popup(self):
+        self.tabs.popup_menu_button.disabled = True
+        self.page.update()
+
+    def _enable_popup(self):
+        self.tabs.popup_menu_button.disabled = False
+        self.page.update()
+
+    def _recognize_button_single_clicked(self, e):
+        self.tabs.whisper_output_control.result = ""
+        self._disable_popup()
+        result = whisper_service.recognize(
+            audio=self.tabs.whisper_single_control.audio_path,
+            model_name=self.tabs.whisper_single_control.model_name,
+            partial_result_received=self.tabs.whisper_single_control.partial_result_received,
+            output_data_received=self._output_data_received,
         )
+        self._enable_popup()
+        return result.is_success
 
-    def menu_button_clicked(self, e):
-        pass
+    def _recognize_button_batch_clicked(self, e):
+        def _get_processed_value(current, total):
+            return f"{current} out of {total}"
 
-    def recognize_button_clicked(self, e):
-        is_success = whisper_service.recognize(
-            audio=self.whisper_control.audio_path,
-            model_name=self.whisper_control.model_name,
-            partial_result_received=self.partial_result_received,
-            output_data_received=self.output_data_received,
+        self.tabs.whisper_output_control.result = ""
+        self._disable_popup()
+        current = 0
+        total = len(self.tabs.whisper_batch_control.uploaded_files)
+        self.tabs.whisper_batch_control.processed_value = _get_processed_value(
+            current, total
         )
-        return is_success
+        for audio_path in self.tabs.whisper_batch_control.uploaded_files:
+            self.tabs.whisper_batch_control.file_in_process(audio_path)
+            result = whisper_service.recognize(
+                audio_path,
+                model_name=self.tabs.whisper_batch_control.model_name,
+                output_data_received=self._output_data_received,
+            )
 
-    def partial_result_received(self, partial_result: str, time_processed: str):
-        if self.whisper_control.result == "":
-            self.whisper_control.result = partial_result.lstrip()
-        else:
-            self.whisper_control.result += partial_result
+            if result.is_success:
+                filename = Path(audio_path).stem + ".txt"
+                file_path = os.path.join(
+                    self.tabs.whisper_batch_control.output_folder, filename
+                )
+                try:
+                    with open(file_path, "w") as file:
+                        file.write(result.text)
+                except Exception as e:
+                    self._output_data_received(partial_output_data=str(e))
+                self.tabs.whisper_batch_control.file_recognized(audio_path, file_path)
+            else:
+                break
+                
+            current += 1
+            self.tabs.whisper_batch_control.processed_value = _get_processed_value(
+                current, total
+            )
 
-        self.whisper_control.time_processed = time_processed
+        self._enable_popup()
 
-    def output_data_received(self, partial_output_data):
-        self.whisper_output_control.result += partial_output_data + "\n"
+    def _output_data_received(self, partial_output_data):
+        self.tabs.whisper_output_control.result += partial_output_data + "\n"
