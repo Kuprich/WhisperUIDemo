@@ -42,9 +42,6 @@ class WhisperBatchControl(ft.UserControl):
         self.audio_list_control = self._build_audio_list_control(
             self.audio_list.controls,
         )
-        self.page.bottom_sheet.content = self._build_bottom_sheet_content(
-            self.BOTTOM_SHEET_TEXT
-        )
         self._configure_snack_bar()
 
     @property
@@ -235,6 +232,9 @@ class WhisperBatchControl(ft.UserControl):
         self.load_audio_button.disabled = False
         self.model_dropdown.disabled = False
         self.remove_all_button.disabled = False
+        self.page.bottom_sheet.content = self._build_bottom_sheet_content(
+            self.BOTTOM_SHEET_TEXT
+        )
         self.page.bottom_sheet.open = True
         self.update()
         self.page.update()

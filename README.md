@@ -1,6 +1,6 @@
 ## Whisper UI
 
-The main goal of the project is to create a graphical user interface for the [Whisper](https://github.com/openai/whisper) speech recognition library
+The main goal of the project is to create a graphical user interface for the [Whisper](https://github.com/openai/whisper) speech recognition library. 
 GUI created using the [Flet](https://flet.dev/) library
 
 
