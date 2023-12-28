@@ -20,7 +20,8 @@ class WhisperBatchControl(ft.UserControl):
         self._processed_value = ""
         self._output_folder = ""
         self._audio_list = AudioListContentControl(
-            on_delete_item=self._audio_list_item_deleted
+            on_delete_item=self._audio_list_item_deleted,
+            on_copy_result=self._recognition_result_copied
         )
 
         self.recognize_button_clicked = recognize_button_clicked
@@ -39,11 +40,12 @@ class WhisperBatchControl(ft.UserControl):
         self.remove_all_button = self._build_remove_all_button()
 
         self.audio_list_control = self._build_audio_list_control(
-            self.audio_list.controls
+            self.audio_list.controls,
         )
         self.page.bottom_sheet.content = self._build_bottom_sheet_content(
             self.BOTTOM_SHEET_TEXT
         )
+        self._configure_snack_bar()
 
     @property
     def processed_value(self):
@@ -60,9 +62,7 @@ class WhisperBatchControl(ft.UserControl):
         return self._audio_list
 
     def _clear_audio_list(self):
-        self.audio_list_control.controls = (
-            self._audio_list.clear_audio_list()
-        )
+        self.audio_list_control.controls = self._audio_list.clear_audio_list()
         self._set_remove_all_button_activity()
         self._set_recognize_button_activity()
         self.update()
@@ -78,9 +78,7 @@ class WhisperBatchControl(ft.UserControl):
         self.update()
 
     def _extend_audio_list(self, value: list[str]):
-        self.audio_list_control.controls = self._audio_list.extend(
-            value
-        )
+        self.audio_list_control.controls = self._audio_list.extend(value)
         self._set_remove_all_button_activity()
         self._set_recognize_button_activity()
         self.update()
@@ -88,37 +86,43 @@ class WhisperBatchControl(ft.UserControl):
     def _disable_delete_icon_in_audio_list(self):
         self.audio_list_control.controls = self.audio_list.disable_delete_icon()
         self.update()
-    
+
     def _enable_delete_icon_in_audio_list(self):
         self.audio_list_control.controls = self.audio_list.enable_delete_icon()
         self.update()
-    
+
     def _reset_statuses_in_audio_list(self):
         self.audio_list_control.controls = self.audio_list.reset_file_statuses()
         self.update()
 
     def _build_bottom_sheet_content(self, text):
         return ft.Container(
-        ft.Row(
-            [
-                ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
-                ft.Row([
-                    ft.ElevatedButton("Open Containing Folder", on_click = self._bottom_sheet_open_folder_click),
-                    ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
-                ])
-                
-            ],
-        ),
-        padding=ft.padding.symmetric(vertical=10, horizontal=20),
-    )
+            ft.Row(
+                [
+                    ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
+                    ft.Row(
+                        [
+                            ft.ElevatedButton(
+                                "Open Containing Folder",
+                                on_click=self._bottom_sheet_open_folder_click,
+                            ),
+                            ft.ElevatedButton(
+                                "OK", on_click=self._bottom_sheet_ok_click
+                            ),
+                        ]
+                    ),
+                ],
+            ),
+            padding=ft.padding.symmetric(vertical=10, horizontal=20),
+        )
 
     def _bottom_sheet_ok_click(self, e):
         self.page.bottom_sheet.open = False
         self.page.update()
-    
+
     def _bottom_sheet_open_folder_click(self, e):
         path = self.output_folder
-        os.startfile(path) 
+        os.startfile(path)
 
     def _set_recognize_button_activity(self):
         self.recognize_button.disabled = (
@@ -127,6 +131,9 @@ class WhisperBatchControl(ft.UserControl):
 
     def _set_remove_all_button_activity(self):
         self.remove_all_button.disabled = len(self.audio_list.files) == 0
+
+    def _configure_snack_bar(self):
+        return shared_controls.configure_snack_bar(self.page.snack_bar)
 
     @property
     def output_folder(self):
@@ -239,7 +246,7 @@ class WhisperBatchControl(ft.UserControl):
         return ft.Text(value)
 
     def _build_model_dropdown(self):
-        return shared_controls._build_model_dropdown()
+        return shared_controls.build_model_dropdown()
 
     def _build_remove_all_button(self):
         return shared_controls.build_icon_button(
@@ -280,7 +287,15 @@ class WhisperBatchControl(ft.UserControl):
 
     def _audio_list_item_deleted(self):
         self._update_audio_list_with_buttons()
+        
+    def _recognition_result_copied(self):
+        self.page.snack_bar.open = True
+        self.page.update()
 
-    def file_recognized(self, audio_path: str):
-        self.audio_list.mark_file_as_recognized(audio_path)
+    def file_recognized(self, audio_path: str, output_file_path:str):
+        self.audio_list.mark_file_as_recognized(audio_path, output_file_path)
+        self._update_audio_list_without_buttons()
+
+    def file_in_process(self, audio_path: str):
+        self.audio_list.mark_file_as_in_process(audio_path)
         self._update_audio_list_without_buttons()

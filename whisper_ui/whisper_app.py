@@ -78,6 +78,7 @@ class WhisperApp(ft.UserControl):
             current, total
         )
         for audio_path in self.tabs.whisper_batch_control.uploaded_files:
+            self.tabs.whisper_batch_control.file_in_process(audio_path)
             result = whisper_service.recognize(
                 audio_path,
                 model_name=self.tabs.whisper_batch_control.model_name,
@@ -86,15 +87,18 @@ class WhisperApp(ft.UserControl):
 
             if result.is_success:
                 filename = Path(audio_path).stem + ".txt"
-                filepath = os.path.join(
+                file_path = os.path.join(
                     self.tabs.whisper_batch_control.output_folder, filename
                 )
                 try:
-                    with open(filepath, "w") as file:
+                    with open(file_path, "w") as file:
                         file.write(result.text)
                 except Exception as e:
                     self._output_data_received(partial_output_data=str(e))
-                self.tabs.whisper_batch_control.file_recognized(audio_path)
+                self.tabs.whisper_batch_control.file_recognized(audio_path, file_path)
+            else:
+                break
+                
             current += 1
             self.tabs.whisper_batch_control.processed_value = _get_processed_value(
                 current, total

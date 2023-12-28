@@ -82,8 +82,7 @@ class WhisperSingleControl(ft.UserControl):
         self.progress_ring = self._build_progress_ring()
         self.result_text_field = self._build_result_text_field()
         self.copy_button = self._build_copy_button()
-
-        self.configure_snack_bar()
+        self._configure_snack_bar()
 
     def build(self):
         return ft.Column(
@@ -116,10 +115,12 @@ class WhisperSingleControl(ft.UserControl):
         )
 
     def _build_model_dropdown(self):
-        return shared_controls._build_model_dropdown()
+        return shared_controls.build_model_dropdown()
 
     def _build_recognize_button(self):
-        return shared_controls.build_recognize_button(self._recognize_button_on_click, True)
+        return shared_controls.build_recognize_button(
+            self._recognize_button_on_click, True, width=170
+        )
 
     def _build_result_text_field(self):
         return ft.TextField(
@@ -135,6 +136,7 @@ class WhisperSingleControl(ft.UserControl):
             text="Select audio file",
             icon=ft.icons.AUDIO_FILE_OUTLINED,
             tooltip="Select audio from FileExplorer",
+            width=170,
             on_click=lambda _: self.pick_files_dialog.pick_files(
                 allow_multiple=False, allowed_extensions=self.FILE_EXTENSIONS
             ),
@@ -161,24 +163,19 @@ class WhisperSingleControl(ft.UserControl):
         )
         return copy_button
 
-    def configure_snack_bar(self):
-        self.snack_bar.content = ft.Text(
-            "Result copied to Clipboard!", color=ft.colors.ON_PRIMARY_CONTAINER
-        )
-        self.snack_bar.action = "Alright!"
-        self.snack_bar.bgcolor = ft.colors.YELLOW_100
-        self.snack_bar.action_color = ft.colors.ON_PRIMARY_CONTAINER
+    def _configure_snack_bar(self):
+        return shared_controls.configure_snack_bar(self.page.snack_bar)
 
     def _build_bottom_sheet_content(self, text):
         return ft.Container(
-        ft.Row(
-            [
-                ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
-                ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
-            ],
-        ),
-        padding=ft.padding.symmetric(vertical=10, horizontal=20),
-    )
+            ft.Row(
+                [
+                    ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
+                    ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
+                ],
+            ),
+            padding=ft.padding.symmetric(vertical=10, horizontal=20),
+        )
 
     def _bottom_sheet_ok_click(self, e):
         self.page.bottom_sheet.open = False
@@ -223,11 +220,10 @@ class WhisperSingleControl(ft.UserControl):
         self._whiper_service_started()
         is_success = self.recognize_button_clicked(e)
         self._whiper_service_finished(is_success)
-        
+
     def partial_result_received(self, partial_result: str, time_processed: str):
         if self.result == "":
             self.result = partial_result.lstrip()
         else:
             self.result += partial_result
         self.time_processed = time_processed
-            

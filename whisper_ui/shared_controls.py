@@ -10,6 +10,7 @@ def build_elevated_button(
     tooltip: str = None,
     on_click=None,
     disabled: bool = None,
+    width: ft.OptionalNumber = None,
 ):
     return ft.ElevatedButton(
         text=text,
@@ -18,6 +19,7 @@ def build_elevated_button(
         height=BUTTON_HEIGHT,
         on_click=on_click,
         tooltip=tooltip,
+        width=width,
     )
 
 
@@ -39,20 +41,20 @@ def build_icon_button(
     )
 
 
-def build_recognize_button(on_click=None, disabled=None):
+def build_recognize_button(on_click=None, disabled=None, width=None):
     recognize_button = build_elevated_button(
         text="Recognize",
         icon=ft.icons.TEXT_ROTATION_NONE,
         tooltip="Start recognition Process",
         on_click=on_click,
         disabled=disabled,
+        width=width
     )
     recognize_button.disabled = True
-    recognize_button.width = BUTTON_WIDTH
     return recognize_button
 
 
-def _build_model_dropdown():
+def build_model_dropdown():
     return ft.Dropdown(
         label="Model",
         width=BUTTON_WIDTH,
@@ -97,3 +99,12 @@ def build_progress_ring(processed_value: ft.Control):
         ],
         visible=False,
     )
+
+
+def configure_snack_bar(snack_bar: ft.SnackBar):
+    snack_bar.content = ft.Text(
+        "Result copied to Clipboard!", color=ft.colors.ON_PRIMARY_CONTAINER
+    )
+    snack_bar.action = "Alright!"
+    snack_bar.bgcolor = ft.colors.YELLOW_100
+    snack_bar.action_color = ft.colors.ON_PRIMARY_CONTAINER
