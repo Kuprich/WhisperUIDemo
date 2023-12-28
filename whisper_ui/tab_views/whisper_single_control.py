@@ -1,29 +1,33 @@
 import flet as ft
 import pyperclip
-from whisper_ui.whisper_output_control import WhisperOutputControl
+import whisper_ui.shared_controls as shared_controls
 
 
-class WhisperControl(ft.UserControl):
-    BUTTON_WIDTH = 150
+class WhisperSingleControl(ft.UserControl):
+    BUTTON_WIDTH = 170
     FILE_EXTENSIONS = ["wav", "mp3"]
     DEFAULT_TIME_VALUE = "00:00"
     BOTTOM_SHEET_SUCCESS = "Recognition process successefully finished!"
-    BOTTOM_SHEET_FAIL = "The recognition process has completed with an error! Check output tab!"
+    BOTTOM_SHEET_FAIL = (
+        "The recognition process has completed with an error! Check output tab!"
+    )
 
     def __init__(
         self,
         page: ft.Page,
-        output_control: WhisperOutputControl,
+        pick_files_dialog: ft.FilePicker,
+        snack_bar: ft.SnackBar,
         recognize_button_clicked,
     ):
         super().__init__()
+        self.pick_files_dialog = pick_files_dialog
+        self.pick_files_dialog.on_result = self._on_dialog_result
+        self.snack_bar = snack_bar
         self.recognize_button_clicked = recognize_button_clicked
         self.page = page
-        self.output_control = output_control
         self._audio_path = ""
         self._result = ""
         self._time_processed = self.DEFAULT_TIME_VALUE
-        self._is_whisper_running = False
         self._build_controls()
 
     @property
@@ -78,12 +82,7 @@ class WhisperControl(ft.UserControl):
         self.progress_ring = self._build_progress_ring()
         self.result_text_field = self._build_result_text_field()
         self.copy_button = self._build_copy_button()
-        self.page.snack_bar = self._build_snack_bar()
-        self.bottom_sheet = self._build_bottom_sheet(
-            content=self._build_bottom_sheet_content(self.BOTTOM_SHEET_SUCCESS)
-        )
-        self.page.overlay.append(self.bottom_sheet)
-        self._configure_file_picker()
+        self._configure_snack_bar()
 
     def build(self):
         return ft.Column(
@@ -109,46 +108,18 @@ class WhisperControl(ft.UserControl):
                             ),
                         ]
                     ),
-                    padding=ft.padding.only(top=10, bottom=5),
+                    padding=ft.padding.only(top=10),
                 ),
                 ft.Row([self.result_text_field], expand=True),
             ]
         )
 
     def _build_model_dropdown(self):
-        return ft.Dropdown(
-            label="Model",
-            width=self.BUTTON_WIDTH,
-            options=[
-                ft.dropdown.Option("tiny.en"),
-                ft.dropdown.Option("tiny"),
-                ft.dropdown.Option("base.en"),
-                ft.dropdown.Option("base"),
-                ft.dropdown.Option("small.en"),
-                ft.dropdown.Option("small"),
-                ft.dropdown.Option("medium.en"),
-                ft.dropdown.Option("medium"),
-                ft.dropdown.Option("large"),
-                ft.dropdown.Option("large-v1"),
-                ft.dropdown.Option("large-v2"),
-                ft.dropdown.Option("large-v3"),
-            ],
-            value="base",
-            tooltip="Select whisper recognition model",
-        )
+        return shared_controls.build_model_dropdown()
 
     def _build_recognize_button(self):
-        return ft.FloatingActionButton(
-            content=ft.Row(
-                [ft.Icon(ft.icons.TEXT_ROTATION_NONE), ft.Text("Recognize")],
-                alignment="center",
-                spacing=5,
-            ),
-            shape=ft.RoundedRectangleBorder(radius=5),
-            on_click=self._recognize_button_on_click,
-            width=self.BUTTON_WIDTH,
-            disabled=True,
-            tooltip="Start recognition Process",
+        return shared_controls.build_recognize_button(
+            self._recognize_button_on_click, True, width=170
         )
 
     def _build_result_text_field(self):
@@ -161,80 +132,45 @@ class WhisperControl(ft.UserControl):
         )
 
     def _build_file_button(self):
-        return ft.FloatingActionButton(
-            content=ft.Row(
-                [ft.Icon(ft.icons.AUDIO_FILE_OUTLINED), ft.Text("Select audio file")],
-                alignment="center",
-                spacing=5,
-            ),
-            shape=ft.RoundedRectangleBorder(radius=5),
-            on_click=lambda _: self.file_picker.pick_files(
+        file_button = shared_controls.build_elevated_button(
+            text="Select audio file",
+            icon=ft.icons.AUDIO_FILE_OUTLINED,
+            tooltip="Select audio from FileExplorer",
+            width=170,
+            on_click=lambda _: self.pick_files_dialog.pick_files(
                 allow_multiple=False, allowed_extensions=self.FILE_EXTENSIONS
             ),
-            width=self.BUTTON_WIDTH,
-            tooltip="Select audio from FileExplorer",
         )
+        file_button.width = self.BUTTON_WIDTH
+
+        return file_button
 
     def _build_selected_file(self):
         return ft.TextField(label="Selected file", disabled=True, expand=True)
 
     def _build_progress_ring(self):
-        progress_ring = ft.Container(
-            ft.ProgressRing(width=20, height=20, stroke_width=2),
-            margin=ft.margin.only(left=20, right=10),
-        )
-        return ft.Row(
-            [
-                progress_ring,
-                ft.Column(
-                    [
-                        ft.Text("Please wait..."),
-                        ft.Row(
-                            [
-                                ft.Text("Already recognized:"),
-                                self.time_processed_text,
-                            ]
-                        ),
-                    ],
-                ),
-            ],
-            visible=False,
-        )
+        return shared_controls.build_progress_ring(self.time_processed_text)
 
     def _buid_time_processed_text(self):
         return ft.Text(self.time_processed)
 
     def _build_copy_button(self):
-        return ft.FloatingActionButton(
+        copy_button = shared_controls.build_icon_button(
             icon=ft.icons.COPY_ALL_OUTLINED,
             on_click=self._copy_button_click,
-            bgcolor=ft.colors.YELLOW_100,
             tooltip="Copy all text from result area",
             disabled=True,
         )
+        return copy_button
 
-    def _build_snack_bar(self):
-        return ft.SnackBar(
-            content=ft.Text(
-                "Result copied to Clipboard!", color=ft.colors.ON_PRIMARY_CONTAINER
-            ),
-            action="Alright!",
-            bgcolor=ft.colors.YELLOW_100,
-            action_color=ft.colors.ON_PRIMARY_CONTAINER,
-        )
-
-    def _build_bottom_sheet(self, content: ft.Control):
-        return ft.BottomSheet(content)
+    def _configure_snack_bar(self):
+        return shared_controls.configure_snack_bar(self.page.snack_bar)
 
     def _build_bottom_sheet_content(self, text):
         return ft.Container(
             ft.Row(
                 [
-                    ft.Text(
-                        text,
-                        expand=True,
-                        text_align=ft.TextAlign.CENTER
-                    ),
+                    ft.Text(text, expand=True, text_align=ft.TextAlign.CENTER),
                     ft.ElevatedButton("OK", on_click=self._bottom_sheet_ok_click),
                 ],
             ),
@@ -242,12 +178,8 @@ class WhisperControl(ft.UserControl):
         )
 
     def _bottom_sheet_ok_click(self, e):
-        self.bottom_sheet.open = False
+        self.page.bottom_sheet.open = False
         self.page.update()
-
-    def _configure_file_picker(self):
-        self.file_picker = ft.FilePicker(on_result=self._on_dialog_result)
-        self.page.overlay.append(self.file_picker)
 
     def _on_dialog_result(self, e: ft.FilePickerResultEvent):
         if e.files:
@@ -260,7 +192,6 @@ class WhisperControl(ft.UserControl):
 
     def _whiper_service_started(self):
         self.result = ""
-        self.output_control.result = ""
         self.progress_ring.visible = True
         self.recognize_button.disabled = True
         self.file_button.disabled = True
@@ -273,11 +204,15 @@ class WhisperControl(ft.UserControl):
         self.file_button.disabled = False
         self.model_dropdown.disabled = False
         self.time_processed = self.DEFAULT_TIME_VALUE
-        if not is_success:
-            self.bottom_sheet.content = self._build_bottom_sheet_content(
+        if is_success:
+            self.page.bottom_sheet.content = self._build_bottom_sheet_content(
+                self.BOTTOM_SHEET_SUCCESS
+            )
+        else:
+            self.page.bottom_sheet.content = self._build_bottom_sheet_content(
                 self.BOTTOM_SHEET_FAIL
             )
-        self.bottom_sheet.open = True
+        self.page.bottom_sheet.open = True
         self.page.update()
         self.update()
 
@@ -285,3 +220,10 @@ class WhisperControl(ft.UserControl):
         self._whiper_service_started()
         is_success = self.recognize_button_clicked(e)
         self._whiper_service_finished(is_success)
+
+    def partial_result_received(self, partial_result: str, time_processed: str):
+        if self.result == "":
+            self.result = partial_result.lstrip()
+        else:
+            self.result += partial_result
+        self.time_processed = time_processed
